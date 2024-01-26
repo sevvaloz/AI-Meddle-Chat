@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="blue">#0580E1</color>
+    <color name="gray">#A0A0A0</color>
+    <color name="myMessage">#FFC107</color>
+    <color name="otherMessage">#2196F3</color>
+
+    <color name="fearMessage">#555353</color>
+    <color name="angerMessage">#F12E2E</color>
+    <color name="happyMessage">#8DEB7F</color>
+    <color name="surpriseMessage">#D379D7</color>
+    <color name="sadMessage">#5898CD</color>
+</resources>

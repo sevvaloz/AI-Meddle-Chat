@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "22307622169",
+    "project_id": "aimeddlechat",
+    "storage_bucket": "aimeddlechat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:22307622169:android:d3a1ffeae91f8ba8a3c988",
+        "android_client_info": {
+          "package_name": "com.sevvalozdamar.aimeddlechat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDISIJP6jbVICTo3We6MDoP0f3a0jWdqU8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
