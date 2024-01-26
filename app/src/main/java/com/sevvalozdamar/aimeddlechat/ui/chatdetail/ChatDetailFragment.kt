@@ -22,7 +22,9 @@ import com.sevvalozdamar.aimeddlechat.utils.ChatDetailHelper.createPrompt
 import com.sevvalozdamar.aimeddlechat.utils.ChatDetailHelper.jsonToSentiment
 import com.sevvalozdamar.aimeddlechat.utils.ChatDetailHelper.parseResponseToSuggestionMessages
 import com.sevvalozdamar.aimeddlechat.utils.ChatDetailHelper.removeOuterBrackets
+import com.sevvalozdamar.aimeddlechat.utils.gone
 import com.sevvalozdamar.aimeddlechat.utils.viewBinding
+import com.sevvalozdamar.aimeddlechat.utils.visible
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -70,6 +72,7 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
                 val message: String = etMessageInput.text.toString().trim { it <= ' ' }
                 if (message.isEmpty()) return@OnClickListener
                 sendMessageToUser(message)
+                rvSuggestionMessages.gone()
             })
         }
 
@@ -143,6 +146,7 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
             //Log.d("BAK2", "ChatGPT Result: ${it.choices[0].message.content}")
             val suggestionMessages = parseResponseToSuggestionMessages(it.choices[0].message.content)
             adapter.submitList(suggestionMessages)
+            binding.rvSuggestionMessages.visible()
         }
     }
 
