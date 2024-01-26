@@ -59,8 +59,8 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private fun onUserClick(userId: String) {
         val chatroomId = FirebaseRepository.currentUserId() + "_" + userId
-        println("Search UserId: " + userId)
-        println("Search ChatroomId: " + chatroomId)
+        //println("Search UserId: " + userId)
+        //println("Search ChatroomId: " + chatroomId)
         findNavController().navigate(SearchFragmentDirections.searchToDetail(chatroomId))
     }
 }

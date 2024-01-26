@@ -22,6 +22,7 @@ import com.sevvalozdamar.aimeddlechat.utils.ChatDetailHelper.createPrompt
 import com.sevvalozdamar.aimeddlechat.utils.ChatDetailHelper.jsonToSentiment
 import com.sevvalozdamar.aimeddlechat.utils.ChatDetailHelper.parseResponseToSuggestionMessages
 import com.sevvalozdamar.aimeddlechat.utils.ChatDetailHelper.removeOuterBrackets
+import com.sevvalozdamar.aimeddlechat.utils.ChatDetailHelper.removeOuterQuote
 import com.sevvalozdamar.aimeddlechat.utils.gone
 import com.sevvalozdamar.aimeddlechat.utils.viewBinding
 import com.sevvalozdamar.aimeddlechat.utils.visible
@@ -35,11 +36,12 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
     private val viewModel: SentimentViewModel by viewModels()
     private val viewModelGPT: ChatGptViewModel by viewModels()
     private val args by navArgs<ChatDetailFragmentArgs>()
-    private val adapter = SuggestionMessagesAdapter()
+    private val adapter = SuggestionMessagesAdapter(onSuggestionMessageClick = ::onSuggestionMessageClick)
     private var chatroomId: String? = null
     private var chatroom: Chatroom? = null
     private var otherUserId: String? = null
     private var listenerRegistration: ListenerRegistration? = null
+    //private var lastMessageId: String? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -47,9 +49,8 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
         binding.rvSuggestionMessages.adapter = adapter
         otherUserId = args.chatroomId.substringAfter('_')
         chatroomId = FirebaseRepository.getChatroomId(FirebaseRepository.currentUserId().toString(), otherUserId!!)
-        println("ChatDetail Other User Id: " + otherUserId.toString())
-        println("ChatDetail Chatroom Id: " + chatroomId.toString())
-
+        //println("ChatDetail Other User Id: " + otherUserId.toString())
+        //println("ChatDetail Chatroom Id: " + chatroomId.toString())
 
         with(binding) {
             FirebaseRepository.getNewUserDetails(otherUserId!!).get()
@@ -100,14 +101,39 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
 
                 if (snapshot != null && !snapshot.isEmpty) {
                     val lastMessage = snapshot.documents[0].toObject(Message::class.java)
-                    if(lastMessage?.senderId != FirebaseRepository.currentUserId()){
-                        lastMessage?.let {
-                            GlobalScope.launch {
-                                delay(10000)
-                                getSentimentResult(it.messageText.toString())
-                                //delay(5000)
-                                getSuggestionMessages(createPrompt(it.messageText.toString()))
-                                Log.d("BAK", "Last message of other person in the chatroom: ${it.messageText}")
+                    var lastMessageBeforeLastMessage: Message? = null
+
+                    if (snapshot.documents.size >= 2) {
+                        lastMessageBeforeLastMessage = snapshot.documents[1].toObject(Message::class.java)
+                        if(lastMessage?.senderId != FirebaseRepository.currentUserId()){
+                            // lastMessage -> from other person
+                            // lastMessageBeforeLastMessage -> from me
+                            lastMessage?.let {
+                                GlobalScope.launch {
+                                    delay(10000)
+                                    getSentimentResult(it.messageText.toString())
+                                    //getLastMessageId(it.messageText.toString())
+                                    //delay(5000)
+                                    getSuggestionMessages(createPrompt(it.messageText.toString(), lastMessageBeforeLastMessage?.messageText.toString()), lastMessageBeforeLastMessage?.messageText.toString())
+                                    Log.d("BAK", "Last message of other person in the chatroom: ${it.messageText}")
+                                    Log.d("BAK", "Last message of me in the chatroom: ${lastMessageBeforeLastMessage?.messageText}")
+                                }
+                            }
+                        }
+                    } else {
+                        if(lastMessage?.senderId != FirebaseRepository.currentUserId()){
+                            // lastMessage -> from other person
+                            // lastMessageBeforeLastMessage -> from me
+                            lastMessage?.let {
+                                GlobalScope.launch {
+                                    delay(10000)
+                                    getSentimentResult(it.messageText.toString())
+                                    //getLastMessageId(it.messageText.toString())
+                                    //delay(5000)
+                                    getSuggestionMessages(createPrompt(it.messageText.toString(), lastMessageBeforeLastMessage?.messageText), lastMessageBeforeLastMessage?.messageText)
+                                    Log.d("BAK", "Last message of other person in the chatroom2: ${it.messageText}")
+                                    Log.d("BAK", "Last message of me in the chatroom2: ${lastMessageBeforeLastMessage?.messageText}")
+                                }
                             }
                         }
                     }
@@ -125,22 +151,55 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
         viewModel.getSentimentResult(sentence)
     }
 
-    private fun getSuggestionMessages(prompt: String){
-        val request = BaseRequest(
-            model = "gpt-3.5-turbo",
-            messages = listOf(com.sevvalozdamar.aimeddlechat.model.chatgptrequest.Message(prompt, "user")),
-            temperature = 0.7
-        )
-        viewModelGPT.getSuggestionMessages(request)
+/*    private fun getLastMessageId(id: String) {
+        lastMessageId = id
+    }*/
+
+    private fun getSuggestionMessages(prompt: String, assistant: String? = null){
+        if(assistant != null){
+            val request = BaseRequest(
+                model = "gpt-3.5-turbo",
+                messages = listOf(
+                    com.sevvalozdamar.aimeddlechat.model.chatgptrequest.Message(prompt, "user"),
+                    com.sevvalozdamar.aimeddlechat.model.chatgptrequest.Message(assistant, "assistant")
+                ),
+                temperature = 0.7
+            )
+            viewModelGPT.getSuggestionMessages(request)
+        } else {
+            val request = BaseRequest(
+                model = "gpt-3.5-turbo",
+                messages = listOf(
+                    com.sevvalozdamar.aimeddlechat.model.chatgptrequest.Message(prompt, "user")
+                ),
+                temperature = 0.7
+            )
+            viewModelGPT.getSuggestionMessages(request)
+        }
     }
 
     private fun observe(){
         viewModel.result.observe(viewLifecycleOwner){
             val sentiment = jsonToSentiment(removeOuterBrackets(it))
             Log.d("BAK", "Sentiment of the last message: $sentiment")
+/*
+            val newData = mapOf(
+                "sentiment" to sentiment
+            )
 
+            Log.d("BAK", "last message!!!: $lastMessageId")
+            Log.d("BAK", "chatroom!!!: $chatroomId")
 
-
+            if(!chatroomId.isNullOrEmpty() && !lastMessageId.isNullOrEmpty()){
+                val ref = FirebaseRepository.getChatDetails(chatroomId!!, lastMessageId!!)
+                ref.update(newData)
+                    .addOnSuccessListener {
+                        Log.d("BAK", "Chat's Sentiment updated")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.d("BAK", "Chat's Sentiment update failed.", e)
+                    }
+            }*/
         }
         viewModelGPT.result.observe(viewLifecycleOwner){
             //Log.d("BAK2", "ChatGPT Result: ${it.choices[0].message.content}")
@@ -181,7 +240,7 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
             messageText = message,
             senderId = FirebaseRepository.currentUserId(),
             timestamp = Timestamp.now(),
-            sentiment = null
+            sentiment = ""
         )
         FirebaseRepository.getChatroomMessageDetails(chatroomId!!).add(message)
             .addOnCompleteListener { task ->
@@ -212,6 +271,10 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
             })
 
         }
+    }
+
+    private fun onSuggestionMessageClick(suggestionMessage: String) {
+        binding.etMessageInput.setText(removeOuterQuote(suggestionMessage))
     }
 
 }

@@ -34,6 +34,10 @@ object FirebaseRepository {
         return FirebaseFirestore.getInstance().collection("chatrooms").document(chatroomId)
     }
 
+    fun getChatDetails(chatroomId: String, messageId: String): DocumentReference{
+        return getChatroomDetails(chatroomId).collection("chats").document(messageId)
+    }
+
     fun getChatroomMessageDetails(chatroomId: String): CollectionReference {
         return getChatroomDetails(chatroomId).collection("chats")
     }

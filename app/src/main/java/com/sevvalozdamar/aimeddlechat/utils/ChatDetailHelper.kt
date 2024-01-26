@@ -1,14 +1,13 @@
 package com.sevvalozdamar.aimeddlechat.utils
 
 import android.util.Log
-import com.sevvalozdamar.aimeddlechat.model.base.Sentiment
 import com.sevvalozdamar.aimeddlechat.model.base.SentimentScore
 import com.sevvalozdamar.aimeddlechat.model.base.SuggestionMessage
 import org.json.JSONArray
 
 object ChatDetailHelper {
 
-    fun findMaxScoreEmotion(sentimentScore: SentimentScore): String {
+    private fun findMaxScoreEmotion(sentimentScore: SentimentScore): String {
         val scores = listOf(
             sentimentScore.fearScore,
             sentimentScore.angerScore,
@@ -40,7 +39,7 @@ object ChatDetailHelper {
             ?: Double.MIN_VALUE
     }
 
-    fun formatDouble(number: Double?): Double {
+    private fun formatDouble(number: Double?): Double {
         return "%.2f".format(number).toDouble()
     }
 
@@ -102,6 +101,12 @@ object ChatDetailHelper {
         return text.substring(startIndex, endIndex)
     }
 
+    fun removeOuterQuote(text: String): String {
+        val startIndex = if (text.startsWith("\"")) 1 else 0
+        val endIndex = if (text.endsWith("\"")) text.length - 1 else text.length
+        return text.substring(startIndex, endIndex)
+    }
+
     fun parseResponseToSuggestionMessages(response: String): MutableList<SuggestionMessage> {
         val messages = response.split("\n")
         val suggestionMessages = mutableListOf<String>()
@@ -122,12 +127,12 @@ object ChatDetailHelper {
         return  suggestionMessageMutableList
     }
 
-    fun createPrompt(content: String): String {
-        return "İki arkadaş, bir mesaj uygulaması üzerinden mesajlaşıyor." +
-                "Arkadaşlardan biri diğerine \"$content\" mesajını yazdı" +
-                "Bu mesaja verilebilecek en uygun öneri cümlelerini 1. 2. 3. diye madde şeklinde yazmalısın." +
-                "Önerilen cümle sayısı, kesinlikle 3 tane olmalı." +
-                "Bu öneri cümlelerinin her biri, 50 karakteri geçmemeli ve bir arkadaşa yazdıldığı için samimi olmalıdır."
+    fun createPrompt(messageFromOther: String, messageFromMe: String? = null): String {
+        return if(messageFromMe != null){
+            "Arkadaşım ve ben çevrimiçi bir mesajlaşma uygulaması üzerinden mesajlaşıyoruz. Ben arkadaşıma \"$messageFromMe\" mesajını yazdım. Arkadaşım da benim bu mesajıma karşılık olarak \"$messageFromOther\" mesajını yazdı. Arkadaşımın yazdığı bu son mesaja benim verilebileceğim en uygun yanıtları 1. 2. 3. şeklinde madde madde yaz. Önerdiğin mesaj sayısı, kesinlikle 3 tane olmalı. Bu öneri mesajlarının her biri, 50 karakteri geçmemeli ve arkadaşıma yazacağım için samimi bir dille olmalı."
+        } else {
+            "Arkadaşım ve ben çevrimiçi bir mesajlaşma uygulaması üzerinden mesajlaşıyoruz. Arkadaşım bana \"$messageFromOther\" mesajını yazdı. Arkadaşımın yazdığı bu mesaja benim verilebileceğim en uygun yanıtları 1. 2. 3. şeklinde madde madde yaz. Önerdiğin mesaj sayısı, kesinlikle 3 tane olmalı. Bu öneri mesajlarının her biri, 50 karakteri geçmemeli ve arkadaşıma yazacağım için samimi bir dille olmalı."
+        }
     }
 
 }

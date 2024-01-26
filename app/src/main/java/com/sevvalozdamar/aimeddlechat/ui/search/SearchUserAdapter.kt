@@ -34,7 +34,7 @@ class SearchUserAdapter(
         fun bind(user: User) {
             with(binding) {
                 itemUserPhoneNumber.text = user.userPhone
-                itemUserImage.setImageResource(R.drawable.asset_person)
+                itemUserImage.setImageResource(R.drawable.asset_user)
                 root.setOnClickListener {
                     onUserClick(user.userId!!)
                 }
