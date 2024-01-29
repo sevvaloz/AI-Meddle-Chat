@@ -103,6 +103,7 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
                     val lastMessage = snapshot.documents[0].toObject(Message::class.java)
                     var lastMessageBeforeLastMessage: Message? = null
 
+                    //users talked each other
                     if (snapshot.documents.size >= 2) {
                         lastMessageBeforeLastMessage = snapshot.documents[1].toObject(Message::class.java)
                         if(lastMessage?.senderId != FirebaseRepository.currentUserId()){
@@ -120,7 +121,9 @@ class ChatDetailFragment : Fragment(R.layout.fragment_chat_detail) {
                                 }
                             }
                         }
-                    } else {
+                    }
+                    //users not talked each other
+                    else {
                         if(lastMessage?.senderId != FirebaseRepository.currentUserId()){
                             // lastMessage -> from other person
                             // lastMessageBeforeLastMessage -> from me
